@@ -1,3 +1,9 @@
+# Forked from cordova-azure-notification-hubs
+Add channel functionality for Android 8 to receive heads-up notifications
+
+
+
+
 # cordova-azure-notification-hubs
 
 Register and receive push notifications with Azure Notification Hubs.

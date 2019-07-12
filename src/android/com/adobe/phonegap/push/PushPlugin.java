@@ -209,7 +209,7 @@ public class PushPlugin extends CordovaPlugin implements PushConstants {
 
                         if (!"".equals(token)) {
                             SharedPreferences.Editor editor = sharedPref.edit();
-                            
+
                             if (((regId=sharedPref.getString(AZURE_REG_ID, null)) == null)){
                                 NotificationHub hub = new NotificationHub(notificationHubPath, connectionString, getApplicationContext());
 
@@ -295,12 +295,14 @@ public class PushPlugin extends CordovaPlugin implements PushConstants {
                     }
                 }
             });
-        } else if (UNREGISTER.equals(action)) {
+
+        }
+        else if (UNREGISTER.equals(action)) {
             cordova.getThreadPool().execute(new Runnable() {
                 public void run() {
                     try {
                         SharedPreferences sharedPref = getApplicationContext().getSharedPreferences(COM_ADOBE_PHONEGAP_PUSH, Context.MODE_PRIVATE);
-                        
+
                         NotificationHub hub = new NotificationHub(notificationHubPath, connectionString, getApplicationContext());
                         hub.unregister();
 
@@ -308,7 +310,7 @@ public class PushPlugin extends CordovaPlugin implements PushConstants {
                         editor.remove(AZURE_REG_ID);
                         editor.remove(REGISTRATION_ID);
                         editor.commit();
-                        
+
                         FirebaseInstanceId.getInstance().deleteInstanceId();
                         Log.v(LOG_TAG, "UNREGISTER");
 
@@ -361,7 +363,47 @@ public class PushPlugin extends CordovaPlugin implements PushConstants {
                     callbackContext.success();
                 }
             });
-        } else if (GET_APPLICATION_ICON_BADGE_NUMBER.equals(action)) {
+        }
+        else if (CREATE_CHANNEL.equals(action)) {
+            // un-subscribing for a topic
+            cordova.getThreadPool().execute(new Runnable() {
+                public void run() {
+                    try {
+                        // call create channel
+                        createChannel(data.getJSONObject(0));
+                        callbackContext.success();
+                    } catch (JSONException e) {
+                        callbackContext.error(e.getMessage());
+                    }
+                }
+            });
+        } else if (DELETE_CHANNEL.equals(action)) {
+            // un-subscribing for a topic
+            cordova.getThreadPool().execute(new Runnable() {
+                public void run() {
+                    try {
+                        String channelId = data.getString(0);
+                        deleteChannel(channelId);
+                        callbackContext.success();
+                    } catch (JSONException e) {
+                        callbackContext.error(e.getMessage());
+                    }
+                }
+            });
+        } else if (LIST_CHANNELS.equals(action)) {
+            // un-subscribing for a topic
+            cordova.getThreadPool().execute(new Runnable() {
+                public void run() {
+                    try {
+                        callbackContext.success(listChannels());
+                    } catch (JSONException e) {
+                        callbackContext.error(e.getMessage());
+                    }
+                }
+            });
+        }
+
+        else if (GET_APPLICATION_ICON_BADGE_NUMBER.equals(action)) {
             cordova.getThreadPool().execute(new Runnable() {
                 public void run() {
                     Log.v(LOG_TAG, "getApplicationIconBadgeNumber");
@@ -417,15 +459,15 @@ public class PushPlugin extends CordovaPlugin implements PushConstants {
         }
     }
 
-	/*
+    /*
      * Retrives badge count from SharedPreferences
      */
-	public static int getApplicationIconBadgeNumber(Context context){
+    public static int getApplicationIconBadgeNumber(Context context){
         SharedPreferences settings = context.getSharedPreferences(BADGE, Context.MODE_PRIVATE);
         return settings.getInt(BADGE, 0);
     }
 
-	/*
+    /*
      * Sets badge count on application icon and in SharedPreferences
      */
     public static void setApplicationIconBadgeNumber(Context context, int badgeCount) {
@@ -546,7 +588,7 @@ public class PushPlugin extends CordovaPlugin implements PushConstants {
     }
 
     public static boolean isInForeground() {
-      return gForeground;
+        return gForeground;
     }
 
     public static boolean isActive() {
